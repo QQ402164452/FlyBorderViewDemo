@@ -7,12 +7,14 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.LinearInterpolator;
+import android.widget.Toast;
 
 import com.example.jasonchen.flyborderviewdemo.R;
 
@@ -53,6 +55,8 @@ public class FlyBorderView extends View {
         startTotalAnim(widthInc, heightInc, translateX, translateY);//调用飞框 自适应和移动 动画效果
     }
 
+    final DisplayMetrics displayMetrics = getContext().getApplicationContext().getResources().getDisplayMetrics();
+
     public void attachToRecyclerView(final RecyclerView recyclerView) {
         View childView = recyclerView.getChildAt(0);
         final int childWidth = childView.getWidth();
@@ -60,29 +64,60 @@ public class FlyBorderView extends View {
         startTotalAnim(childWidth + 2 * borderWidth, childHeight + 2 * borderWidth,
                 childView.getLeft() - borderWidth, childView.getTop() - borderWidth);
 
-        final DisplayMetrics displayMetrics = getContext().getApplicationContext().getResources().getDisplayMetrics();
-        recyclerView.getRootView().getViewTreeObserver().addOnGlobalFocusChangeListener(new ViewTreeObserver.OnGlobalFocusChangeListener() {
-            @Override
-            public void onGlobalFocusChanged(View oldFocus, View newFocus) {
+        StaggeredGridLayoutManager layoutManager = (StaggeredGridLayoutManager) recyclerView.getLayoutManager();
+        switch (layoutManager.getOrientation()) {
+            case StaggeredGridLayoutManager.HORIZONTAL:
+                recyclerView.getViewTreeObserver().addOnGlobalFocusChangeListener(new ViewTreeObserver.OnGlobalFocusChangeListener() {
+                    @Override
+                    public void onGlobalFocusChanged(View oldFocus, View newFocus) {
 
-                if (newFocus.getLayoutParams() instanceof RecyclerView.LayoutParams && oldFocus.getLayoutParams() instanceof RecyclerView.LayoutParams) {
-                    int left;
-                    if (newFocus.getLeft() >= displayMetrics.widthPixels - childWidth) {
-                        left = displayMetrics.widthPixels - childWidth;
-                    } else if (newFocus.getLeft() <= 0) {
-                        left = 0;
-                    } else {
-                        left = newFocus.getLeft();
+                        if (newFocus.getLayoutParams() instanceof RecyclerView.LayoutParams) {
+                            int left;
+                            if (newFocus.getLeft() >= displayMetrics.widthPixels - childWidth) {
+                                left = displayMetrics.widthPixels - childWidth;
+                            } else if (newFocus.getLeft() <= 0) {
+                                left = 0;
+                            } else {
+                                left = newFocus.getLeft();
+                            }
+                            int widthInc = newFocus.getWidth() + 2 * borderWidth - getWidth();
+                            int heightInc = newFocus.getHeight() + 2 * borderWidth - getHeight();
+                            int translationX = left - borderWidth;
+                            int translationY = newFocus.getTop() - borderWidth;
+                            startTotalAnim(widthInc, heightInc, translationX, translationY);
+                        }
+
                     }
-                    int widthInc = newFocus.getWidth() + 2 * borderWidth - getWidth();
-                    int heightInc = newFocus.getHeight() + 2 * borderWidth - getHeight();
-                    int translationX = left - borderWidth;
-                    int translationY = newFocus.getTop() - borderWidth;
-                    startTotalAnim(widthInc, heightInc, translationX, translationY);
-                }
+                });
+                break;
+            case StaggeredGridLayoutManager.VERTICAL:
+                recyclerView.getViewTreeObserver().addOnGlobalFocusChangeListener(new ViewTreeObserver.OnGlobalFocusChangeListener() {
+                    @Override
+                    public void onGlobalFocusChanged(View oldFocus, View newFocus) {
 
-            }
-        });
+                        if (newFocus.getLayoutParams() instanceof RecyclerView.LayoutParams) {
+                            int top;
+                            if (newFocus.getTop() >= displayMetrics.heightPixels - childHeight) {
+                                top = displayMetrics.heightPixels - childHeight;
+                            } else if (newFocus.getTop() <= 0) {
+                                top = 0;
+                            } else {
+                                top = newFocus.getTop();
+                            }
+                            int widthInc = newFocus.getWidth() + 2 * borderWidth - getWidth();
+                            int heightInc = newFocus.getHeight() + 2 * borderWidth - getHeight();
+                            int translationX = newFocus.getLeft() - borderWidth;
+                            int translationY = top - borderWidth;
+                            startTotalAnim(widthInc, heightInc, translationX, translationY);
+                        }
+                    }
+                });
+                break;
+            default:
+                Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 
     /**

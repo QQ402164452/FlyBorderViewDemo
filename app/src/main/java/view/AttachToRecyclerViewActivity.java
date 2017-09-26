@@ -37,7 +37,7 @@ public class AttachToRecyclerViewActivity extends BaseActivity {
     protected void setData() {
         List<Movie> list = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            list.add(new Movie("Sakura" + i, "ZZZZZ"));
+            list.add(new Movie("Sakura" + i, "ZZZZ"));
         }
         menuAdapter = new MenuAdapter(list);
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.HORIZONTAL));
